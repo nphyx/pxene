@@ -1,10 +1,10 @@
 "use strict";
-import * as buffers from "./app.display.buffers";
-import * as events from "./app.events";
-import * as ui from "./app.display.ui";
+import * as buffers from "./pxene.display.buffers";
+import * as events from "./pxene.events";
+import * as ui from "./pxene.display.ui";
 export {buffers, ui};
-import * as constants from "./app.constants";
-import {evenNumber} from "./app.util";
+import * as constants from "./pxene.constants";
+import {evenNumber} from "./pxene.util";
 let {min, max} = Math;
 let AUTO_FULLSCREEN = false;
 
@@ -90,6 +90,10 @@ function updateProperties() {
 	displayProps.minDimension = min(displayProps.width, displayProps.height);
 	displayProps.maxDimension = max(displayProps.width, displayProps.height);
 	displayProps.events.fire("resize");
+	bufferList.forEach(buffer => {
+		buffer.canvas.width = displayProps.width;
+		buffer.canvas.height = displayProps.height;
+	});
 }
 
 
@@ -108,10 +112,11 @@ function animate() {
 	}
 }
 
-function initBuffers(bufferList) {
-	for(let i = 0, len = bufferList.length; i < len; ++i) {
-		let bufData = bufferList[i];
-		let buffer = buffers.drawBuffer(bufData.compositeMethod, bufData.scaleMethod, bufData.width, bufData.height);
+function initBuffers(bufferDescriptions) {
+	for(let i = 0, len = bufferDescriptions.length; i < len; ++i) {
+		let bufData = bufferDescriptions[i];
+		let buffer = new buffers.DrawBuffer(bufData.compositeMethod, bufData.scaleMethod);
+		buffer.id = bufData.label;
 		bufferList.push(buffer);
 		buffersByLabel[bufData.label] = buffer;
 	}
@@ -126,8 +131,8 @@ export function init(config) {
 	compositeBuffer = new buffers.CompositeBuffer(container);
 	container.width = compositeBuffer.width  = evenNumber(container.clientWidth);
 	container.height = compositeBuffer.height = evenNumber(container.clientHeight);
+	initBuffers(config.bufferDescriptions);
 	updateProperties();
-	initBuffers(config.bufferList);
 	frameCallback = config.frameCallback;
 	window.addEventListener("resize", updateProperties);
 	AUTO_FULLSCREEN = config.fullscreen;

@@ -1,5 +1,8 @@
 "use strict";
 
+/**
+ * *Very* simple event object.
+ */
 export function Events() {
 	this.queue = {};
 	return this;

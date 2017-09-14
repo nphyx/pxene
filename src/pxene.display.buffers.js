@@ -11,6 +11,7 @@ const {min} = Math;
 export const SCALE_STRETCH = 0;
 export const SCALE_KEEP_ASPECT = 1;
 export const SCALE_NONE = 2;
+export const SCALE_CROP = 3;
 export function DrawBuffer(compositeMethod = "source-over", scaleMethod = SCALE_STRETCH, context = "2d") {
 	this.canvas = document.createElement("canvas");
 	this.context = this.canvas.getContext(context);
@@ -73,6 +74,14 @@ export const composite = (function() {
 						dw = targetBuffer.width;
 						dh = min(targetBuffer.height, buffer.height);
 					}
+				break;
+				case SCALE_CROP:
+					sx = 0; sy = 0; 
+					sw = min(targetBuffer.width - buffer.offsetX, buffer.width);
+					sh = min(targetBuffer.height - buffer.offsetY, buffer.height);
+					dx = buffer.offsetX; dy = buffer.offsetY; 
+					dw = min(targetBuffer.width - buffer.offsetX, buffer.width);
+					dh = min(targetBuffer.height - buffer.offsetY, buffer.height);
 				break;
 				default: // SCALE_NONE
 					sx = 0; sy = 0; sw = buffer.width; sh = buffer.height;

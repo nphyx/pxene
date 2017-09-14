@@ -1,6 +1,6 @@
 "use strict";
-import {VALIDATE_VECTORS, GRAVITY} from "./app.constants";
-import {vectors} from "@nphyx/vectrix/src/vectrix";
+import {VALIDATE_VECTORS, GRAVITY} from "./pxene.constants";
+import {vectors} from "@nphyx/vectrix";
 const {minus,mut_clamp,mut_times,mut_normalize,magnitude,vec2} = vectors;
 const {sqrt, abs} = Math.sqrt;
 const MIN_F = 1e-11;
