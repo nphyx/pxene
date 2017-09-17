@@ -22,7 +22,9 @@ export default function KeyMap(label) {
 	label = label.toLowerCase();
 	this.label = label;
 	this.keys = [];
-	return Object.freeze(this);
+	this.checkedDown = 0;
+	this.checkedUp = 0;
+	return Object.seal(this);
 }
 
 KeyMap.prototype.lastDown = function lastDown() {
@@ -35,4 +37,20 @@ KeyMap.prototype.lastUp = function lastUp() {
 
 KeyMap.prototype.isDown = function isDown() {
 	return this.keys.reduce((p, c) => p = p || c.down, false);
+}
+
+KeyMap.prototype.onceDown = function onceDown() {
+	if(this.lastUp() >= this.checkedDown && this.isDown()) {
+		this.checkedDown = Date.now();
+		return true;
+	}
+	return false;
+}
+
+KeyMap.prototype.onceUp = function onceUp() {
+	if(this.lastDown() >= this.checkedUp && !this.isDown()) {
+		this.checkedUp = Date.now();
+		return true;
+	}
+	return false;
 }

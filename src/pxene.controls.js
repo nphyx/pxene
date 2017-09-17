@@ -95,7 +95,7 @@ export function lookupKeyState(key) {
 function down(ev) {
 	const time = Date.now();
 	const ks = lookupKeyState(ev.key);
-	if(ks) {
+	if(ks && ks.lastUp >= ks.lastDown) { // ignore key repeats
 		ks.down = true;
 		ks.lastDown = time; 
 	}
