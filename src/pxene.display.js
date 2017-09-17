@@ -1,8 +1,9 @@
 "use strict";
+import * as util from "./pxene.display.util.js";
 import * as buffers from "./pxene.display.buffers";
 import * as events from "./pxene.events";
 import * as ui from "./pxene.display.ui";
-export {buffers, ui};
+export {buffers, ui, util};
 import * as constants from "./pxene.constants";
 import {evenNumber} from "./pxene.util";
 let {min, max} = Math;
@@ -102,13 +103,18 @@ function updateProperties() {
  */
 function animate() {
 	requestAnimationFrame(animate);
-	let now = Date.now();
-	let elapsed = now - lastFrame;
-	if(elapsed > interval) {
-		lastFrame = now - (elapsed % interval);
-		frameCount++;
-		frameCallback(buffersByLabel, elapsed, frameCount);
-		buffers.composite(bufferList, compositeBuffer, displayProps);
+	try {
+		let now = Date.now();
+			let elapsed = now - lastFrame;
+			if(elapsed > interval) {
+				lastFrame = now - (elapsed % interval);
+				frameCount++;
+				frameCallback(buffersByLabel, elapsed, frameCount);
+				buffers.composite(bufferList, compositeBuffer, displayProps);
+			}
+		}
+	catch(e) {
+		console.error("Crappy uncaught error in animation loop is crappy");
 	}
 }
 
