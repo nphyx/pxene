@@ -38,7 +38,7 @@ export function enqueueAsset(uri, defer = false) {
 		if(defer) enqueuedURIs.push(uri);
 		else {
 			fetchingURIs.push(uri);
-			return fetch(globalAssetPrefix+uri).then(processFetchResponse).then(storeAsset);
+			return fetch(globalAssetPrefix+uri).then(makeProcessFetchResponse(uri)).then(storeAsset);
 		}
 	}
 
@@ -54,16 +54,20 @@ export function enqueueAsset(uri, defer = false) {
 export function processQueue() {
 	return Promise.all(enqueuedURIs.slice(0).map((uri) => {
 		moveItem(uri, enqueuedURIs, fetchingURIs);
-		return fetch(globalAssetPrefix+uri).then(processFetchResponse).then(storeAsset)
+		return fetch(globalAssetPrefix+uri).then(makeProcessFetchResponse(uri)).then(storeAsset)
 	}));
+}
+
+function makeProcessFetchResponse(uri) {
+	return processFetchResponse.bind(null, uri);
 }
 
 /**
  * Processes a response from a fetch request.
  */
-function processFetchResponse(res) {
+function processFetchResponse(uri, res) {
 	return new Promise(resolve => {
-		let origUrl = res.url.replace(globalAssetPrefix, "");
+		let origUrl = uri; //res.url.replace(globalAssetPrefix, "");
 		if(res.ok) {
 			let type = res.headers.get("Content-type");
 			console.log(origUrl, type);
@@ -74,8 +78,10 @@ function processFetchResponse(res) {
 				case "image/png":
 					res.blob().then((blob) => {
 						let img = document.createElement("img");
+						img.addEventListener("load", function() {
+							resolve(img, origUrl, type);
+						});
 						img.src = URL.createObjectURL(blob);
-						resolve(img, origUrl, type);
 					});
 				break;
 				case "text/html":
