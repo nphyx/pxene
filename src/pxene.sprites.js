@@ -12,11 +12,16 @@ export function get(uri) {
 }
 
 export function importAsepriteAtlas(uri) {
-	return new Promise(resolve => {
-		assets.getAsset(uri).then(item => {
-			let sprite = convertAsepriteAtlas(item.content);
+	return new Promise((resolve) => {
+		assets.requestAsset(uri)
+		.then((res) => {
+			console.log(res);
+			return loadFromAsepriteAtlas(res);
+		})
+		.then((sprite) => {
+			console.log(sprite);
 			spriteList[uri] = sprite;
-			sprite.load().then(resolve);
+			resolve(sprite);
 		});
 	});
 }
@@ -25,7 +30,9 @@ export function importAsepriteAtlas(uri) {
  * Converts an aseprite atlas to a sprite object.
  * May need to be complexified later to deal with non-uniform sprite sheets.
  */
-function convertAsepriteAtlas(aspr) {
+function loadFromAsepriteAtlas(asset) {
+	console.log("loadFromAsepriteAtlas", asset);
+	let aspr = asset.content;
 	let animations = {
 		default:{
 		label:"default",
@@ -42,11 +49,17 @@ function convertAsepriteAtlas(aspr) {
 		};
 	});
 
-	return new Sprite(	
-		aspr.frames.length,
-		aspr.frames[0].frame.w,
-		aspr.frames[0].frame.h,
-		animations,
-		aspr.meta.image
-	);
+	return new Promise((resolve) => {
+		assets.requestAsset(aspr.meta.image).then((image) => {
+			let sprite = new Sprite(
+				aspr.frames.length,
+				aspr.frames[0].frame.w,
+				aspr.frames[0].frame.h,
+				animations
+			);
+			sprite.generateComposite([image.content]);
+			sprite.generateFlipped();
+			resolve(sprite);
+		});
+	});
 }
