@@ -128,4 +128,16 @@ describe("ObjectPool", function() {
 		pool.available.should.eql(10);
 		pool.used.should.eql(0);
 	});
+	it("should close and open pools, and complain when the pool is full and closed", function() {
+		let pool = makeTestPool();
+		pool.preAllocate(1);
+		pool.close();
+		let obj = pool.allocate();
+		(() => pool.allocate()).should.throwError();
+		(() => pool.preAllocate(1)).should.throwError();
+		pool.free(obj);
+		(() => obj = pool.allocate()).should.not.throwError();
+		pool.open();
+		(() => pool.allocate()).should.not.throwError();
+	});
 });

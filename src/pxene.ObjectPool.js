@@ -25,19 +25,22 @@
 export default function ObjectPool(factory) {
 	const pool = [];
 	const freed = [];
+	var open = true;
 
 	/**
 	 * Allocate an item from the pool (either recycled or new as available).
 	 * Parameters are passed through to the init() method of the pool object
 	 * if it has one.
+	 * @throws Error if the pool is closed and there are no free objects
 	 */
 	this.allocate = function allocate(...args) {
 		let obj;
 		if(freed.length) obj = freed.pop();
-		else {
+		else if(open) {
 			obj = Object.seal(factory());
 			pool.push(obj);
 		}
+		else throw new Error("pool is closed");
 		if(typeof(obj.init) === "function") obj.init.apply(obj, args);
 		return obj;
 	}
@@ -59,12 +62,27 @@ export default function ObjectPool(factory) {
 	 * ahead of time.
 	 */
 	this.preAllocate = function(n) {
+		if(!open) throw new Error("pool is closed");
 		let obj;
 		for(let i = 0; i < n; ++i) {
 			obj = factory();
 			pool.push(obj);
 			freed.push(obj);
 		}
+	}
+
+	/**
+	 * Closes the pool, so that no new objects will be created.
+	 */
+	this.close = function() {
+		open = false;
+	}
+
+	/**
+	 * Opens the pool if closed.
+	 */
+	this.open = function() {
+		open = true;
 	}
 
 	Object.defineProperties(this, {
