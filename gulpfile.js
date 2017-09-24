@@ -5,48 +5,14 @@ const babelRegister = require("babel-core/register");
 const exec = require("child_process").exec;
 const mocha = require("gulp-mocha");
 const istanbul = require("gulp-babel-istanbul");
-const path = require("path");
-const webpack = require("webpack");
-const del = require("del");
-const webpackConfigFrontend = {
-	entry:path.resolve(__dirname, "dist/node/vectrix.js"),
-	devtool:"source-map",
-	output:{
-		filename:"vectrix.bundle.js",
-		path:path.resolve(__dirname, "dist/web/")
-	},
-	plugins:[
-		new webpack.optimize.DedupePlugin(),
-		new webpack.optimize.UglifyJsPlugin()
-  ]
-}
-
-gulp.task("default", ["doc", "webpack"]);
-
-gulp.task("clean", function() {
-	return del(["target/*", "dist/*"]);
-});
+//const path = require("path");
+//const webpack = require("webpack");
+//const del = require("del");
 
 gulp.task("babel", ["clean"], function() {
 	return gulp.src(["src/*js"])
 	.pipe(babel())
 	.pipe(gulp.dest("dist/node"));
-});
-
-/* jshint unused:false */
-gulp.task("webpack", ["babel", "test"], function(callback) {
-	webpack(webpackConfigFrontend, function(err, stats) {
-		if(err) console.log(err);
-		/*
-		if (err) throw new gutil.PluginError('webpack', err);
-
-		gutil.log('[webpack]', stats.toString({
-			colors: true,
-			progress: true
-		}));
-		*/
-		callback();
-	});
 });
 
 gulp.task("doc", function(cb) {
@@ -65,36 +31,6 @@ gulp.task("test", function() {
 			js:babelRegister
 		}
 	}));
-});
-
-gulp.task("test:vectors", function() {
-	return gulp.src(["test/vectrix.vectors.test.js"])
-	.pipe(mocha({
-		bail:true,
-		compilers: {
-			js:babelRegister
-		}
-	}));
-});
-
-gulp.task("test:matrices", function() {
-	return gulp.src(["test/vectrix.matrices.test.js"])
-	.pipe(mocha({
-		bail:true,
-		compilers: {
-			js:babelRegister 
-		}
-	}))
-});
-
-gulp.task("test:quaternions", function() {
-	return gulp.src(["test/vectrix.quaternions.test.js"])
-	.pipe(mocha({
-		bail:true,
-		compilers: {
-			js:babelRegister
-		}
-	}))
 });
 
 gulp.task("test:coverage", function(cb) {
