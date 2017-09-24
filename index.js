@@ -4,6 +4,8 @@ import * as events from "./src/pxene.events";
 import * as util from "./src/pxene.util";
 import * as assets from "./src/pxene.assets";
 import * as sprites from "./src/pxene.sprites";
+import BooleanArray from "./src/pxene.BooleanArray";
 import ObjectPool from "./src/pxene.ObjectPool";
+import CollisionMap from "./src/pxene.CollisionMap";
 
-export {display, controls, events, util, assets, sprites, ObjectPool};
+export {display, controls, events, util, assets, sprites, ObjectPool, BooleanArray, CollisionMap};

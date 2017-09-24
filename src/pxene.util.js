@@ -1,6 +1,4 @@
 "use strict";
-import PerPixelCollisionMap from "./pxene.util.PerPixelCollisionMap.js";
-export {PerPixelCollisionMap};
 import {VALIDATE_VECTORS, GRAVITY} from "./pxene.constants";
 import {vectors} from "@nphyx/vectrix";
 const {minus,mut_clamp,mut_copy,mut_times,normalize,mut_normalize,magnitude,vec2} = vectors;
