@@ -1,5 +1,23 @@
 "use strict";
 
+/**
+ * Flattens an array. 
+ * @function flatten
+ * @param {mixed} a an array, array-like, or object that can be flattened
+ * @return {mixed} flat version of input
+ */
+export function flatten(a) {
+	// cheap array-like check, may not always be reliable
+	if(a instanceof Object && typeof a.length == "number") {
+		let i = 0, len = a.length, out = [];
+		for(;i < len; ++i) {
+			out = out.concat(flatten(a[i]));
+		}
+		return out;
+	}
+	else return a;
+}
+
 import KeyState from "./pxene.controls.KeyState";
 import KeyMap from "./pxene.controls.KeyMap";
 
@@ -17,11 +35,12 @@ const keyMaps = {
  * let forward = pxene.controls.map("forward", "d", "rightArrow");
  * ```
  * @param {string} label a label for the keymap
- * @param {string} ...keys a list of keys to map
+ * @param {string|Array} ...keys a list of keys to map
  * @return {KeyMap}
  */
 export function map(label, ...keys) {
 	const map = getOrInitMap(label);
+	keys = flatten(keys);
 	keys.forEach(key => {
 		const ks = getOrInitKeyState(key);
 		if(map.keys.indexOf(ks) == -1) map.keys.push(ks)
