@@ -1,8 +1,16 @@
 "use strict";
-//import * as assets from "./pxene.assets";
+import * as assets from "../pxene.assets";
+/**
+ * @module pxene.graphics.Sprite
+ *
+ * Contains the Sprite prototype, as well as the internally managed sprite cache.
+ */
+let cache = [];
 
 /**
- * Sprite object handles spritely stuff.
+ * An image subdivided into individual cells suitable for character animations. The
+ * Sprite object manages data related to the location of individual animations, and
+ * drawing of individual cells to an external canvas.
  */
 export default function Sprite(frameCount, frameWidth, frameHeight, animations) {
 	this.frameCount = frameCount;
@@ -21,24 +29,29 @@ export default function Sprite(frameCount, frameWidth, frameHeight, animations) 
 }
 
 /**
- * Generates a composite sprite from the image list the sprite was loadedw with.
+ * Initializes the sprite with an image, copying it to the sprite's internal
+ * canvas.
+ * @param {Image} image a loaded Image element
+ * @param {bool} flipped whether to generate a horizontally flipped version (default: true)
  */
-Sprite.prototype.generateComposite = function generateComposite(imageList) {
+Sprite.prototype.init = function init(image, flipped = true) {
 	let canvas = document.createElement("canvas");
-	canvas.width = this.width = imageList[0].width;
-	canvas.height = this.height = imageList[0].height;
+	canvas.width = this.width = image.width;
+	canvas.height = this.height = image.height;
 	this.columns = canvas.width / this.frameWidth;
 	this.rows = canvas.height / this.frameHeight;
 	let context = canvas.getContext("2d");
-	for(let i = 0, len = imageList.length; i < len; ++i) {
-		context.drawImage(imageList[i], 0, 0);
-	}
+	context.drawImage(image, 0, 0);
+	if(flipped) this.generateFlipped();
 	this.ready = true;
 	this.spriteCanvas = canvas;
 }
 
+
 /**
- * Generates a horizontally flipped version of the sprite with all the cells at the same indexes.
+ * Generates a horizontally flipped version of the sprite with all the cells
+ * at the same indexes. Normally run during {@link init} but can be called
+ * manually if init was instructed not to create the flipped version.
  */
 Sprite.prototype.generateFlipped = function generateFlipped() {
 	let canvas = document.createElement("canvas");
@@ -100,4 +113,50 @@ function getX(sprite, frameNum) {
  */
 function getY(sprite, frameNum) {
 	return Math.floor(frameNum / sprite.columns) * sprite.frameHeight;
+}
+
+/**
+ * Create a new Sprite from an imported AsepriteAtlas. Returns a promise
+ * which resolves with a sprite once it's ready to use.
+ *
+ * @param {string} uri a URI for an atlas JSON file
+ * @return {Promise}
+ */
+Sprite.fromAsepriteAtlas = function fromAsepriteAtlas(uri) {
+	return new Promise((resolve) => {
+		if(cache[uri] !== undefined && cache[uri] instanceof Sprite) {
+			resolve(cache[uri]);
+		}
+		else assets.requestAsset(uri)
+		.then((asset) => {
+			let aspr = asset.content;
+			let animations = {
+				default:{
+				label:"default",
+				startFrame:0,
+				length:1
+				}
+			}
+
+			if(aspr.meta.frameTags) aspr.meta.frameTags.forEach((anim) => {
+				animations[anim.name.toLowerCase()] = {
+					label:anim.name.toLowerCase(),
+					startFrame:anim.from,
+					length:(anim.to - anim.from) + 1
+				};
+			});
+
+			assets.requestAsset(aspr.meta.image).then((image) => {
+				let sprite = new Sprite(
+					aspr.frames.length,
+					aspr.frames[0].frame.w,
+					aspr.frames[0].frame.h,
+					animations
+				);
+				sprite.init(image.content);
+				cache[uri] = sprite;
+				resolve(sprite);
+			});
+		});
+	});
 }
