@@ -30,7 +30,7 @@ CollisionMap.CHANNEL_GREEN = 1;
 /** pixel array index offset for the blue channel **/
 CollisionMap.CHANNEL_BLUE = 2;
 /** pixel array index offset for the alpha channel **/
-CollisionMap.CHANNEL_AlPHA = 3;
+CollisionMap.CHANNEL_ALPHA = 3;
 
 /**
  * Creates a per-pixel collision map from a Canvas.
@@ -43,22 +43,33 @@ CollisionMap.CHANNEL_AlPHA = 3;
  * convert from [0 - 1] to [0 - 255] if providing a threshold 
  */
 CollisionMap.fromCanvasPixels = function(canvas, threshold = 0, channel = CollisionMap.CHANNEL_ALPHA) {
-	let ppcm = new CollisionMap(canvas.width, canvas.height);
+	console.time("new CollisionMap");
+	let map = new CollisionMap(canvas.width, canvas.height);
+	console.timeEnd("new CollisionMap");
 	let pixels;
 	let context = canvas.getContext("2d");
-	for(let y = 0, h = canvas.height; y < h; ++y) {
-		// go one row at a time with the image data for sanity/memory use
+	console.time("fromCanvasPixels loop");
+	let once = true;
+	for(let y = 0, h = canvas.height; y < h; y += 100) {
+		// go 100 rows at time with the image data for sanity/memory use
 		try {
-			pixels = context.getImageData(0, y, canvas.width, 1).data;
+			if(once) console.time("getImageData");
+			pixels = context.getImageData(0, y, canvas.width, 100).data;
+			if(once) console.timeEnd("getImageData");
 		}
 		catch(e) {
 			throw new Error("CollisionData:failed to get image data :(");
 		}
+		if(once) console.time("loop map.set");
 		for(let i = 0, len = pixels.length; i < len; i+=4) {
-			let x = i / 4;
-			if(pixels[i+channel] > threshold) ppcm.set(x, y, true);
+			let mx = (i / 4) % canvas.width, my = y + (~~((i / 4) / canvas.width));
+			if(pixels[i+channel] > threshold) map.set(mx, my, true);
 		}
+		if(once) console.timeEnd("loop map.set");
+		once = false;
 	}
+	console.timeEnd("fromCanvasPixels loop");
+	return map;
 }
 
 /**

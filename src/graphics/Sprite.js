@@ -42,9 +42,9 @@ Sprite.prototype.init = function init(image, flipped = true) {
 	this.rows = canvas.height / this.frameHeight;
 	let context = canvas.getContext("2d");
 	context.drawImage(image, 0, 0);
+	this.spriteCanvas = canvas;
 	if(flipped) this.generateFlipped();
 	this.ready = true;
-	this.spriteCanvas = canvas;
 }
 
 
@@ -127,36 +127,38 @@ Sprite.fromAsepriteAtlas = function fromAsepriteAtlas(uri) {
 		if(cache[uri] !== undefined && cache[uri] instanceof Sprite) {
 			resolve(cache[uri]);
 		}
-		else assets.requestAsset(uri)
-		.then((asset) => {
-			let aspr = asset.content;
-			let animations = {
-				default:{
-				label:"default",
-				startFrame:0,
-				length:1
+		else {
+			console.log(assets);
+			assets.requestAsset(uri).then((asset) => {
+				let aspr = asset.content;
+				let animations = {
+					default:{
+					label:"default",
+					startFrame:0,
+					length:1
+					}
 				}
-			}
 
-			if(aspr.meta.frameTags) aspr.meta.frameTags.forEach((anim) => {
-				animations[anim.name.toLowerCase()] = {
-					label:anim.name.toLowerCase(),
-					startFrame:anim.from,
-					length:(anim.to - anim.from) + 1
-				};
-			});
+				if(aspr.meta.frameTags) aspr.meta.frameTags.forEach((anim) => {
+					animations[anim.name.toLowerCase()] = {
+						label:anim.name.toLowerCase(),
+						startFrame:anim.from,
+						length:(anim.to - anim.from) + 1
+					};
+				});
 
-			assets.requestAsset(aspr.meta.image).then((image) => {
-				let sprite = new Sprite(
-					aspr.frames.length,
-					aspr.frames[0].frame.w,
-					aspr.frames[0].frame.h,
-					animations
-				);
-				sprite.init(image.content);
-				cache[uri] = sprite;
-				resolve(sprite);
+				assets.requestAsset(aspr.meta.image).then((image) => {
+					let sprite = new Sprite(
+						aspr.frames.length,
+						aspr.frames[0].frame.w,
+						aspr.frames[0].frame.h,
+						animations
+					);
+					sprite.init(image.content);
+					cache[uri] = sprite;
+					resolve(sprite);
+				});
 			});
-		});
+		}
 	});
 }

@@ -55,6 +55,26 @@ function fetchAsset(uri) {
 		if(!moveItem(uri, enqueuedURIs, fetchingURIs)) fetchingURIs.push(uri);
 		return fetch(globalAssetPrefix+uri).then(makeProcessFetchResponse(uri))	
 	}
+	else if(fetchingURIs.indexOf(uri) >= 0) {
+		return new Promise((resolve) => {
+			// @todo event based implementation of this ridiculous shit right here
+			let count = 0;
+			let interval = setInterval(() => {
+				if(cache[uri] !== undefined) {
+					resolve(cache[uri]);
+					clearInterval(interval);
+				}
+				else count++;
+				if(count > 100) {
+					clearInterval(interval);
+					throw Error("stuck in fetching status way too long");
+				}
+			}, 250);
+		});
+	}
+	else if(completedURIs.indexOf(uri) >= 0) {
+		return Promise.resolve(cache[uri]);
+	}
 }
 
 
@@ -103,7 +123,7 @@ function storeAsset(uri, content, type, resolve) {
 export function requestAsset(uri) {
 	let item = cache[uri];
 	if(item === undefined) return fetchAsset(uri);
-	else return new Promise((resolve) => resolve(item));
+	else return Promise.resolve(item);
 }
 
 export function requestAssetList(list) {
