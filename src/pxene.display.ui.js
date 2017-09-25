@@ -1,7 +1,7 @@
 "use strict";
 import {drawCircle} from "./pxene.display";
 import {DEBUG} from "./pxene.constants";
-import * as controls from "./pxene.controls";
+import * as controls from "./controls";
 const {max} = Math;
 
 let ctx, uiBuffer;
