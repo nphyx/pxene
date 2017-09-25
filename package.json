@@ -1,20 +1,19 @@
 {
   "name": "@nphyx/pxene",
-  "version": "0.2.1",
+  "version": "0.0.1",
   "repository": "https://github.com/nphyx/pxene",
   "description": "Basic game engine tools for personal projects.",
   "author": "Justen Robertson <nphyxx@gmail.com>",
   "main": "index.js",
   "dependencies": {
-    "@nphyx/vectrix": "^0.2.1",
-    "gulp": "^3.9.1"
+    "@nphyx/vectrix": "^0.2.1"
   },
   "devDependencies": {
     "babel-core": "^6.0.0",
     "babel-loader": "^6.0.0",
     "babel-preset-es2015": "^6.0.0",
     "del": "^2.2.2",
-    "gulp": "^3.9.0",
+    "gulp": "^3.9.1",
     "gulp-babel": "^6.0.0",
     "gulp-babel-istanbul": "^1.0.0",
     "gulp-inject-modules": "^0.1.1",
