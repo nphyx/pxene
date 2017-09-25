@@ -24,6 +24,7 @@ let compositeBuffer;
 export const displayProps = {
 	width:0,
 	height:0,
+	pixelRatio:1,
 	orientation:0,
 	aspect:0,
 	minDimension:0,
@@ -85,16 +86,17 @@ function fullscreenOff(ev) {
  * Updates screen ratio.
  */
 function updateProperties() {
-	compositeBuffer.width  = displayProps.width  = evenNumber(document.body.clientWidth);
-	compositeBuffer.height = displayProps.height = evenNumber(document.body.clientHeight);
+	compositeBuffer.width  = displayProps.width  = evenNumber(container.clientWidth);
+	compositeBuffer.height = displayProps.height = evenNumber(container.clientHeight);
 	displayProps.orientation = displayProps.width > displayProps.height?0:1;
 	displayProps.minDimension = min(displayProps.width, displayProps.height);
 	displayProps.maxDimension = max(displayProps.width, displayProps.height);
-	displayProps.events.fire("resize");
+	// @todo review this, it probably needs better handling
 	bufferList.forEach(buffer => {
-		buffer.canvas.width = displayProps.width;
-		buffer.canvas.height = displayProps.height;
+		buffer.canvas.width = ~~(displayProps.width/displayProps.pixelRatio);
+		buffer.canvas.height = ~~(displayProps.height/displayProps.pixelRatio);
 	});
+	displayProps.events.fire("resize");
 }
 
 

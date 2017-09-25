@@ -44,52 +44,54 @@ export function CompositeBuffer(container) {
 }
 
 export const composite = (function() {
-	let i, len, buffer, targetContext;
+	let i, len, sourceBuffer, targetContext;
 	let sw, sh, sx, sy, dw, dh, dx, dy;
 	return function composite(sourceBuffers, targetBuffer, displayProps) {
 		targetContext = targetBuffer.context;
+		// if using a pixel ratio, assume it's for pixel art and don't screw it up
+		if(displayProps.pixelRatio !== 1) targetContext.imageSmoothingEnabled = false;
 		for(i = 0, len = sourceBuffers.length; i < len; ++i) {
-			buffer = sourceBuffers[i];
-			if(targetContext.globalCompositeOperation !== buffer.compositeMethod)
-				targetContext.globalCompositeOperation = buffer.compositeMethod;
-			switch(buffer.scaleMethod) {
+			sourceBuffer = sourceBuffers[i];
+			if(targetContext.globalCompositeOperation !== sourceBuffer.compositeMethod)
+				targetContext.globalCompositeOperation = sourceBuffer.compositeMethod;
+			switch(sourceBuffer.scaleMethod) {
 				case SCALE_STRETCH:
-					sx = 0; sy = 0; sw = buffer.width; sh = buffer.height;
-					dx = buffer.offsetX; dy = buffer.offsetY; 
+					sx = 0; sy = 0; sw = sourceBuffer.width; sh = sourceBuffer.height;
+					dx = sourceBuffer.offsetX; dy = sourceBuffer.offsetY; 
 					dw = targetBuffer.width; dh = targetBuffer.height;
 				break;
 				case SCALE_KEEP_ASPECT:
-					sx = 0; sy = 0; sw = buffer.width; sh = buffer.height;
-					dx = buffer.offsetX; dy = buffer.offsetY; 
+					sx = 0; sy = 0; sw = sourceBuffer.width; sh = sourceBuffer.height;
+					dx = sourceBuffer.offsetX; dy = sourceBuffer.offsetY; 
 					dw = targetBuffer.width; dh = targetBuffer.height;
 					if(displayProps.orientation) {
 						sw = targetBuffer.width;
-						sh = min(targetBuffer.height, buffer.height);
-						dw = min(targetBuffer.width, buffer.width);
+						sh = min(targetBuffer.height, sourceBuffer.height);
+						dw = min(targetBuffer.width, sourceBuffer.width);
 						dh = targetBuffer.height;
 					}
 					else {
-						sw = min(targetBuffer.width, buffer.width);
+						sw = min(targetBuffer.width, sourceBuffer.width);
 						sh = targetBuffer.height;
 						dw = targetBuffer.width;
-						dh = min(targetBuffer.height, buffer.height);
+						dh = min(targetBuffer.height, sourceBuffer.height);
 					}
 				break;
 				case SCALE_CROP:
 					sx = 0; sy = 0; 
-					sw = min(targetBuffer.width - buffer.offsetX, buffer.width);
-					sh = min(targetBuffer.height - buffer.offsetY, buffer.height);
-					dx = buffer.offsetX; dy = buffer.offsetY; 
-					dw = min(targetBuffer.width - buffer.offsetX, buffer.width);
-					dh = min(targetBuffer.height - buffer.offsetY, buffer.height);
+					sw = min(targetBuffer.width - sourceBuffer.offsetX, sourceBuffer.width);
+					sh = min(targetBuffer.height - sourceBuffer.offsetY, sourceBuffer.height);
+					dx = sourceBuffer.offsetX; dy = sourceBuffer.offsetY; 
+					dw = min(targetBuffer.width - sourceBuffer.offsetX, sourceBuffer.width);
+					dh = min(targetBuffer.height - sourceBuffer.offsetY, sourceBuffer.height);
 				break;
 				default: // SCALE_NONE
-					sx = 0; sy = 0; sw = buffer.width; sh = buffer.height;
-					dx = buffer.offsetX; dy = buffer.offsetY; 
-					dw = buffer.width; dh = buffer.height;
+					sx = 0; sy = 0; sw = sourceBuffer.width; sh = sourceBuffer.height;
+					dx = sourceBuffer.offsetX; dy = sourceBuffer.offsetY; 
+					dw = sourceBuffer.width*displayProps.pixelRatio; dh = sourceBuffer.height*displayProps.pixelRatio;
 				break;
 			}
-			targetContext.drawImage(buffer.canvas, sx, sy, sw, sh, dx, dy, dw, dh); 
+			targetContext.drawImage(sourceBuffer.canvas, sx, sy, sw, sh, dx, dy, dw, dh); 
 		}
 	}
 })();

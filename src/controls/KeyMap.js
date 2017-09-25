@@ -1,3 +1,9 @@
+"use strict";
+/**
+ * @module pxene.controls.KeyMap
+ * contains the KeyMap prototype.
+ */
+
 /**
  * Data type for handling mappings of keys to control labels.
  * @example

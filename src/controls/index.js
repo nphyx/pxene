@@ -1,25 +1,7 @@
 "use strict";
-
-/**
- * Flattens an array. 
- * @function flatten
- * @param {mixed} a an array, array-like, or object that can be flattened
- * @return {mixed} flat version of input
- */
-export function flatten(a) {
-	// cheap array-like check, may not always be reliable
-	if(a instanceof Object && typeof a.length == "number") {
-		let i = 0, len = a.length, out = [];
-		for(;i < len; ++i) {
-			out = out.concat(flatten(a[i]));
-		}
-		return out;
-	}
-	else return a;
-}
-
-import KeyState from "./pxene.controls.KeyState";
-import KeyMap from "./pxene.controls.KeyMap";
+import {flatten} from "../pxene.util";
+import KeyState from "./KeyState";
+import KeyMap from "./KeyMap";
 
 const state = [
 ];

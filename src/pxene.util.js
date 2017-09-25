@@ -278,3 +278,21 @@ export function gameSpaceVec(v, displayProps, out) {
 	out[0] = 2*((v[0])/displayProps.minDimension)-1;
 	out[1] = 2*((v[1])/displayProps.minDimension)-1;
 }
+
+/**
+ * Flattens an array. 
+ * @function flatten
+ * @param {mixed} a an array, array-like, or object that can be flattened
+ * @return {mixed} flat version of input
+ */
+export function flatten(a) {
+	// cheap array-like check, may not always be reliable
+	if(a instanceof Object && typeof a.length == "number") {
+		let i = 0, len = a.length, out = [];
+		for(;i < len; ++i) {
+			out = out.concat(flatten(a[i]));
+		}
+		return out;
+	}
+	else return a;
+}
