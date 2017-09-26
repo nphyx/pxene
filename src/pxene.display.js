@@ -93,8 +93,8 @@ function updateProperties() {
 	displayProps.maxDimension = max(displayProps.width, displayProps.height);
 	// @todo review this, it probably needs better handling
 	bufferList.forEach(buffer => {
-		buffer.canvas.width = ~~(displayProps.width/displayProps.pixelRatio);
-		buffer.canvas.height = ~~(displayProps.height/displayProps.pixelRatio);
+		buffer.width = ~~(displayProps.width/displayProps.pixelRatio);
+		buffer.height = ~~(displayProps.height/displayProps.pixelRatio);
 	});
 	displayProps.events.fire("resize");
 }
@@ -134,6 +134,7 @@ function initBuffers(bufferDescriptions) {
  * Initializes game environment.
  */
 export function init(config) {
+	displayProps.pixelRatio = config.pixelRatio || displayProps.pixelRatio;
 	container = document.querySelector(config.container);
 	container.classList.add("2d");
 	compositeBuffer = new buffers.CompositeBuffer(container);
