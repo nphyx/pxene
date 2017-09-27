@@ -5,6 +5,7 @@ import * as assets from "../pxene.assets";
  *
  * Contains the Sprite prototype, as well as the internally managed sprite cache.
  */
+/** a cache of already processed Sprites **/
 let cache = [];
 
 /**
@@ -17,8 +18,8 @@ export default function Sprite(frameCount, frameWidth, frameHeight, animations) 
 	this.frameWidth = frameWidth;
 	this.frameHeight = frameHeight;
 	this.animations = animations;
-	this.spriteCanvas = undefined;
-	this.flippedCanvas = undefined;
+	this.context = undefined;
+	this.flippedContext = undefined;
 	this.ready = false;
 	// below calculated during generateComposite
 	this.width = 0; 
@@ -42,7 +43,7 @@ Sprite.prototype.init = function init(image, flipped = true) {
 	this.rows = canvas.height / this.frameHeight;
 	let context = canvas.getContext("2d");
 	context.drawImage(image, 0, 0);
-	this.spriteCanvas = canvas;
+	this.context = context;
 	if(flipped) this.generateFlipped();
 	this.ready = true;
 }
@@ -70,31 +71,32 @@ Sprite.prototype.generateFlipped = function generateFlipped() {
 			sx = col * w;
 			dx = sx; //((cols - col) * w) - w;
 			sy = dy = row * h;
-			context.drawImage(this.spriteCanvas, sx, sy, w, h, -sx-w, dy, w, h);
+			context.drawImage(this.context.canvas, sx, sy, w, h, -sx-w, dy, w, h);
 		}
 	}
 	context.setTransform(1, 0, 0, 1, 0, 0);
-	this.flippedCanvas = canvas;
+	this.flippedContext = context;
 }
 
 /**
  * Draws a sprite frame from a given animation set, or the default animation
  * if the specified animation is incorrect.
- * @param {string} name the name of the animation to play
- * @param {int} frame the frame number to display
- * @param {CanvasRenderingContext2D} context a context to draw to
+ * @param {CanvasRenderingContext2D} dest the destination context
+ * @param {string} name the name of the animation to draw
+ * @param {int} frame the frame number to draw
  * @param {vec2} pos the top left corner from which to start drawing
  * @param {bool} flip horizontal flip toggle (to reverse facing of sprite)
  */
-Sprite.prototype.animate = function animate(name, frame, context, pos, flip = false) {
+Sprite.prototype.draw = function draw(dest, name, frame, pos, flipped = false) {
 	let animation = (
 			this.animations[name]?
 			this.animations[name]:
 			this.animations.default);
 	let frameNum = animation.startFrame + (frame % animation.length);
 	let {frameWidth, frameHeight} = this;
-	context.drawImage(
-		flip?this.flippedCanvas:this.spriteCanvas, 
+	let canvas = flipped?this.flippedContext.canvas:this.context.canvas; 
+	dest.drawImage(
+		canvas,
 		getX(this, frameNum), getY(this, frameNum),
 		frameWidth, frameHeight,
 		pos[0], pos[1], 
