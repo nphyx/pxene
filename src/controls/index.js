@@ -94,6 +94,8 @@ export function lookupKeyState(key) {
  * Handles keydown events.
  */
 function down(ev) {
+	ev.preventDefault();
+	ev.stopPropagation();
 	const time = Date.now();
 	const ks = lookupKeyState(ev.key);
 	if(ks && ks.lastUp >= ks.lastDown) { // ignore key repeats
@@ -106,6 +108,8 @@ function down(ev) {
  * Handles keyup events.
  */
 function up(ev) {
+	ev.preventDefault();
+	ev.stopPropagation();
 	const time = Date.now();
 	const ks = lookupKeyState(ev.key);
 	if(ks) {
