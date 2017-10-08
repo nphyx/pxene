@@ -129,14 +129,18 @@ Atlas.prototype.prebake = function prebake() {
 
 /**
  * Create a new Atlas from an imported AsepriteAtlas. Returns a promise
- * which resolves with an atlas once it's ready to use.
+ * which resolves with an atlas once it's ready to use. Accepts a callback for
+ * processing the data property on layers and slices, which defaults to treating
+ * it as a string.
  *
  * @todo a gulp module that exports with the correct options to make this work
  *
  * @param {string} uri a URI for an atlas JSON file
+ * @param {function} dataCallback custom function for transforming the "data" parameter
  * @return {Promise}
  */
-Atlas.fromAsepriteAtlas = function fromAsepriteAtlas(uri) {
+Atlas.fromAsepriteAtlas = function fromAsepriteAtlas(uri, dataCallback) {
+	dataCallback = dataCallback || function(a) {return a};
 	/**
 	 * uniq used below to filter unique tags, due to aseprite bug
 	 * which creates duplicate entries
@@ -157,17 +161,21 @@ Atlas.fromAsepriteAtlas = function fromAsepriteAtlas(uri) {
 				let layerHeight = height / numLayers;
 
 				// Hash of layers by name to be added to the Atlas
-				let layers = {};
+				let layers = {}, layer;
 				let layerNames = [];
 
 				aspr.meta.layers.forEach((l, i) => {
 					layerNames.push(l.name);
-					layers[l.name] = {
-						label:l.name,
-						opacity:l.opacity,
-						blendMode:l.blendMode,
-						pos:vectors.vec2(0, i * layerHeight),
-						frames:[]
+					if(layers[l.name] === undefined) {
+						layer = {
+							label:l.name.trim(),
+							data:dataCallback(l.data?l.data:""),
+							opacity:l.opacity,
+							blendMode:l.blendMode,
+							pos:vectors.vec2(0, i * layerHeight),
+							frames:[]
+						}
+						layers[layer.label] = Object.freeze(layer);
 					}
 				});
 
@@ -175,53 +183,57 @@ Atlas.fromAsepriteAtlas = function fromAsepriteAtlas(uri) {
 				let slices = {
 					default:{
 						label:"default",
+						data:dataCallback(""),
 						pos:vectors.vec2(0, 0),
 						dims:vectors.vec2(width, height)
 					}
-				};
+				}, slice;
 
 				aspr.meta.slices.forEach(s => {
 					// as of v1.2.2, aseprite duplicates frame tags once per
 					// layer but the data is always the same
 					if(slices[s.name] === undefined) {
-						slices[s.name] = {
-							label:s.name,
+						slice = {
+							label:s.name.trim(),
+							data:dataCallback(s.data?s.data:""),
 							pos:vectors.vec2(s.keys[0].bounds.x, s.keys[0].bounds.y),
 							dims:vectors.vec2(s.keys[0].bounds.w, s.keys[0].bounds.h)
 						}
+						slices[slice.label] = Object.freeze(slice);
 					}
 				});
 
 				// Hash of animations by name to be added to the Atlas
-				let animations = {};
+				let animations = {}, animation;
 
 				aspr.meta.frameTags.forEach(f => {
 					// as of v1.2.2, aseprite duplicates frame tags once per
 					// layer but the data is always the same
 					if(animations[f.name] === undefined) {
-						animations[f.name] = {
-							label:f.name,
+						 animation = {
+							label:f.name.trim(),
 							start:f.from,
 							length:(f.to - f.from) + 1
 						}
+						animations[animation.label] = Object.freeze(animation);
 					}
 				});
 
 				aspr.frames.forEach((f, i) => {
 					let layer = layers[layerNames[~~(i / numFrames)]];
 					let frame = {
-						label:f.name,
+						//label:f.name.trim(),
 						pos:vectors.vec2(f.frame.x, f.frame.y),
 						dims:vectors.vec2(f.frame.w, f.frame.h)
 					}
-					layer.frames.push(frame);
+					layer.frames.push(Object.freeze(frame));
 				});
 
 				assets.requestAsset(aspr.meta.image).then((image) => {
 					let atlas = new Atlas(
-						layers,
-						animations,
-						slices
+						Object.seal(layers),
+						Object.seal(animations),
+						Object.seal(slices)
 					);
 					atlas.init(image.content);
 					cache[uri] = atlas;
