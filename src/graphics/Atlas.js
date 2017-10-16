@@ -116,6 +116,38 @@ Atlas.prototype.draw = function(dest, label, pos, flipped = false, layers = unde
 }
 
 /**
+ * Draws a sprite frame from a given animation set, or the default animation
+ * if the specified animation is incorrect.
+ * @param {CanvasRenderingContext2D} dest the destination context
+ * @param {string} label the name of the animation to draw
+ * @param {vec2} pos the top left corner from which to start drawing
+ * @param {int} frame the frame number to draw
+ * @param {bool} flip horizontal flip toggle (to reverse facing of sprite)
+ * @param {Array} layers list of layers by name to draw
+ */
+Atlas.prototype.animate = function animate(dest, label, pos, frame, flipped = false, layers = undefined) {
+	// draw all layers if a layer list isn't specified
+	if(layers === undefined) layers = Object.keys(this.layers);
+
+	let animation = (
+			this.animations[label]?
+			this.animations[label]:
+			this.animations.default);
+
+	let frameNum = animation.start + (frame % animation.length);
+	let canvas = flipped?this.flippedContext.canvas:this.context.canvas; 
+	layers.forEach(layer => {
+		let frame = this.layers[layer].frames[frameNum];
+		dest.drawImage(
+			canvas,
+			frame.pos[0], frame.pos[1],
+			frame.dims[0], frame.dims[1],
+			pos[0], pos[1], 
+			frame.dims[0], frame.dims[1])
+	});
+}
+
+/**
  * Creates a new Atlas by combining into a single layer the listed layers, 
  * in the order supplied.
  * @param {Array} layers list of layers by label
