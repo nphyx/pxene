@@ -1,5 +1,6 @@
 "use strict";
-import {drawCircle} from "./pxene.display";
+/*
+//import {drawCircle} from "./pxene.display";
 import {DEBUG} from "./pxene.constants";
 import * as controls from "./controls";
 const {max} = Math;
@@ -10,7 +11,7 @@ let displayProps;
 /**
  * Creates debug markers on screen to show the center, top, left, bottom, right, topleft
  * and topright extremes of the main game area.
- */
+ *
 const debugMarkers = (function() {
 	let w, h, wh, hh;
 	return function debugMarkers() {
@@ -32,7 +33,7 @@ const debugMarkers = (function() {
 
 /**
  * Draws an edge button.
- */
+ *
 function drawEdgeButton(ctx, x, y, w, h) {
 	let halfButtonWidth = w*0.5;
 	let buttonHeight = h;
@@ -66,7 +67,7 @@ function drawEdgeButton(ctx, x, y, w, h) {
 
 /**
  * Draws UI elements.
- */
+ *
 export function draw() {
 	let w = displayProps.width;
 	let h = displayProps.height;
@@ -93,7 +94,7 @@ export function draw() {
 /**
  * Initializes the UI submodule.
  * @param {DrawBuffer} buffer
- */
+ *
 export function init(buffer, props) {
 	displayProps = props;
 	uiBuffer = buffer;
@@ -106,3 +107,4 @@ function updateProps() {
 	uiBuffer.width = displayProps.width;
 	uiBuffer.height = displayProps.height;
 }
+*/

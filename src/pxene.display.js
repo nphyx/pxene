@@ -5,12 +5,13 @@ import * as events from "./pxene.events";
 import * as ui from "./pxene.display.ui";
 export {buffers, ui, util};
 import * as constants from "./pxene.constants";
-import {evenNumber} from "./pxene.util";
+//import {evenNumber} from "./pxene.util";
 let {min, max} = Math;
 let AUTO_FULLSCREEN = false;
 
 let startTime; // time game started
 let interval = 0;
+let elapsed = 0;
 let frameCount = 0; // running total of drawn frames
 let animating = false; // whether the game is currently running animation loop
 let container; // display container 
@@ -21,7 +22,14 @@ const bufferList = [];
 export const buffersByLabel = {};
 let compositeBuffer;
 
-export const displayProps = {
+/**
+ * Round to nearest even number.
+ */
+export function evenNumber(n) {
+return n >> 1 << 1;
+}
+
+export const props = {
 	width:0,
 	height:0,
 	pixelRatio:1,
@@ -30,6 +38,14 @@ export const displayProps = {
 	minDimension:0,
 	maxDimension:0,
 	events:new events.Events()
+}
+
+export const timing = {
+	get frameCount() {return frameCount},
+	get startTime() {return startTime},
+	get lastFrame() {return lastFrame},
+	get elapsed() {return elapsed},
+	get interval() {return interval}
 }
 
 /**
@@ -59,14 +75,14 @@ function toggleFullScreen() {
       document.documentElement.mozRequestFullScreen();
     else if (document.documentElement.webkitRequestFullscreen)
       document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-		displayProps.events.fire("fullscreen-on");
+		props.events.fire("fullscreen-on");
   } 
 	else {
     if (document.exitFullscreen) document.exitFullscreen();
     else if (document.msExitFullscreen) document.msExitFullscreen();
     else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-		displayProps.events.fire("fullscreen-off");
+		props.events.fire("fullscreen-off");
   }
 }
 
@@ -86,17 +102,17 @@ function fullscreenOff(ev) {
  * Updates screen ratio.
  */
 function updateProperties() {
-	compositeBuffer.width  = displayProps.width  = evenNumber(container.clientWidth);
-	compositeBuffer.height = displayProps.height = evenNumber(container.clientHeight);
-	displayProps.orientation = displayProps.width > displayProps.height?0:1;
-	displayProps.minDimension = min(displayProps.width, displayProps.height);
-	displayProps.maxDimension = max(displayProps.width, displayProps.height);
+	compositeBuffer.width  = props.width  = evenNumber(container.clientWidth);
+	compositeBuffer.height = props.height = evenNumber(container.clientHeight);
+	props.orientation = props.width > props.height?0:1;
+	props.minDimension = min(props.width, props.height);
+	props.maxDimension = max(props.width, props.height);
 	// @todo review this, it probably needs better handling
 	bufferList.forEach(buffer => {
-		buffer.width = ~~(displayProps.width/displayProps.pixelRatio);
-		buffer.height = ~~(displayProps.height/displayProps.pixelRatio);
+		buffer.width = ~~(props.width/props.pixelRatio);
+		buffer.height = ~~(props.height/props.pixelRatio);
 	});
-	displayProps.events.fire("resize");
+	props.events.fire("resize");
 }
 
 
@@ -107,12 +123,12 @@ function animate() {
 	requestAnimationFrame(animate);
 	try {
 		let now = Date.now();
-			let elapsed = now - lastFrame;
+			elapsed = now - lastFrame;
 			if(elapsed > interval) {
 				lastFrame = now - (elapsed % interval);
 				frameCount++;
-				frameCallback(buffersByLabel, elapsed, frameCount);
-				buffers.composite(bufferList, compositeBuffer, displayProps);
+				frameCallback(buffersByLabel);
+				buffers.composite(bufferList, compositeBuffer, props);
 			}
 		}
 	catch(e) {
@@ -134,7 +150,7 @@ function initBuffers(bufferDescriptions) {
  * Initializes game environment.
  */
 export function init(config) {
-	displayProps.pixelRatio = config.pixelRatio || displayProps.pixelRatio;
+	props.pixelRatio = config.pixelRatio || props.pixelRatio;
 	container = document.querySelector(config.container);
 	container.classList.add("2d");
 	compositeBuffer = new buffers.CompositeBuffer(container);
