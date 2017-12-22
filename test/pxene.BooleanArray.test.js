@@ -6,11 +6,11 @@ describe("BooleanArray", function() {
 	it("should create a BooleanArray of a given length", function() {
 		let ba = new BooleanArray(9);
 		(ba instanceof BooleanArray).should.be.True();
-		ba.length.should.eql(16);
+		ba.length.should.eql(9);
 		ba = new BooleanArray(1);
-		ba.length.should.eql(8);
+		ba.length.should.eql(1);
 		ba = new BooleanArray(14);
-		ba.length.should.eql(16);
+		ba.length.should.eql(14);
 	});
 	it("should accept an ArrayBuffer, ByteOffset, and length as alternate parameters", function() {
 		let ab = new ArrayBuffer(2);
@@ -61,5 +61,19 @@ describe("BooleanArray", function() {
 		ba.fill(true);
 		ba.recycle();
 		for(let i = 0; i < len; ++i) ba.get(i).should.be.False();
+	});
+	it("should iterate over itself with forEach", function() {
+		const compare = [false,false,false,true,false,true,false,false,true];
+		let ba = new BooleanArray(compare.length);
+		let n = 0;
+		compare.forEach((c, i) => {
+			ba.set(i, c);
+		});
+		ba.forEach((c, i, a) => {
+			a.should.eql(ba);
+			i.should.eql(n);
+			c.should.eql(compare[i]);
+			n++;
+		});
 	});
 });

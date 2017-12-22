@@ -27,12 +27,13 @@ const internalArray = Symbol();
 export default function BooleanArray() {
 	if((arguments[0] instanceof ArrayBuffer) && (typeof arguments[1] === "number") && (typeof arguments[2] === "number")) {
 			this[internalArray] = new Uint8Array(arguments[0], arguments[1], Math.ceil(arguments[2]/8));
+			this.length = arguments[2];
 	}
 	else if(typeof arguments[0] === "number") {
 		this[internalArray] = new Uint8Array(Math.ceil(arguments[0]/8));
+		this.length = arguments[0];
 	}
 	else throw Error("expected either length or buffer, offset, length as arguments");
-	this.length = this[internalArray].byteLength * 8;
 	Object.freeze(this);
 	return this;
 }
@@ -41,6 +42,7 @@ export default function BooleanArray() {
  * Gets a boolean by index.
  */
 BooleanArray.prototype.get = function get(n) {
+	if(n > this.length) return undefined;
 	let i = ~~(n/8);
 	let s = n % 8;
 	return (this[internalArray][i] & (1 << s))?true:false;
@@ -52,6 +54,7 @@ BooleanArray.prototype.get = function get(n) {
  * @param {truthy|falsy} v value to set
  */
 BooleanArray.prototype.set = function set(n, v) {
+	if(n > this.length) return;
 	let i = ~~(n/8);
 	let s = n % 8;
 	if(v) { // any kind of truthy is ok!
@@ -75,4 +78,23 @@ BooleanArray.prototype.fill = function(v) {
  */
 BooleanArray.prototype.recycle = function() {
 	this[internalArray].fill(0);
+}
+
+/**
+ * Same as Array.forEach.
+ * Accepts a callback function in the form of:
+ * function(currentElement, currentIndex, SelfArray)
+ *
+ * @param {function} callback a callback function
+ */
+BooleanArray.prototype.forEach = function(callback) {
+	let set = 0, externalIndex = 0, i = 0, k = 0, len, 
+		  alen = this.length;
+	for(len = this[internalArray].length; i < len; ++i) {
+		externalIndex = i * 8;
+		set = this[internalArray][i];
+		for(k = 0; k < 8 && externalIndex + k < alen; ++k) {
+			callback((set & (1 << k))?true:false, externalIndex + k, this);
+		}
+	}
 }
