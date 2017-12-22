@@ -1,5 +1,5 @@
 "use strict";
-import {flatten} from "../pxene.util";
+//import {flatten} from "../pxene.util";
 import KeyState from "./KeyState";
 import KeyMap from "./KeyMap";
 
@@ -7,6 +7,24 @@ const state = [
 ];
 
 const keyMaps = {
+}
+
+/**
+ * Flattens an array. 
+ * @function flatten
+ * @param {mixed} a an array, array-like, or object that can be flattened
+ * @return {mixed} flat version of input
+ */
+export function flatten(a) {
+	// cheap array-like check, may not always be reliable
+	if(a instanceof Object && typeof a.length == "number") {
+		let i = 0, len = a.length, out = [];
+		for(;i < len; ++i) {
+			out = out.concat(flatten(a[i]));
+		}
+		return out;
+	}
+	else return a;
 }
 
 
@@ -91,26 +109,45 @@ export function lookupKeyState(key) {
 }
 
 /**
- * Handles keydown events.
+ * Handles keydown & mousedown events.
  */
 function down(ev) {
 	const time = Date.now();
-	const ks = lookupKeyState(ev.key);
-	if(ks && ks.lastUp >= ks.lastDown) { // ignore key repeats
-		ks.down = true;
-		ks.lastDown = time; 
+	if(ev instanceof MouseEvent) {
+		const ks = lookupKeyState("mouse"+ev.button);
+		if(ks && ks.lastUp >= ks.lastDown) { // ignore key repeats
+			ks.down = true;
+			ks.lastDown = time; 
+		}
+	}
+	else if(ev instanceof KeyboardEvent) {
+		/* global KeyboardEvent */
+		const ks = lookupKeyState(ev.key);
+		if(ks && ks.lastUp >= ks.lastDown) { // ignore key repeats
+			ks.down = true;
+			ks.lastDown = time; 
+		}
 	}
 }
 
 /**
- * Handles keyup events.
+ * Handles keyup & mouseup events.
  */
 function up(ev) {
 	const time = Date.now();
-	const ks = lookupKeyState(ev.key);
-	if(ks) {
-		ks.down = false;
-		ks.lastUp = time;
+	if(ev instanceof MouseEvent) {
+		const ks = lookupKeyState("mouse"+ev.button);
+		if(ks) {
+			ks.down = false;
+			ks.lastUp = time;
+		}
+	}
+	else if(ev instanceof KeyboardEvent) {
+		const ks = lookupKeyState(ev.key);
+		if(ks) {
+			ks.down = false;
+			ks.lastUp = time;
+		}
 	}
 }
 
@@ -125,8 +162,21 @@ function blur() {
 	});
 }
 
+const cursor_pos = new Float32Array(2);
+function updateCursorState(ev) {
+	cursor_pos[0] = ev.clientX;
+	cursor_pos[1] = ev.clientY;
+}
+
+export function getCursorPosition() {
+	return Float32Array.of(cursor_pos[0], cursor_pos[1]);
+}
+
 export function init() {
 	window.addEventListener("keydown", down); 
 	window.addEventListener("keyup", up); 
+	window.addEventListener("mousedown", down); 
+	window.addEventListener("mouseup", up); 
 	window.addEventListener("blur", blur);
+	window.addEventListener("mousemove", updateCursorState);
 }
